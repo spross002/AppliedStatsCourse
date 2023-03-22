@@ -1,0 +1,91 @@
+---
+title: "Pross - Lab 5"
+author: "Sebastian Pross"
+date: '2022-05-05'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+Lab_5_Data_Sheet1 <- read_csv("Lab 5 Data - Sheet1.csv")
+
+
+```
+
+# INTRODUCTION
+
+|       One of the many sports offered at the collegiate level is Track and Field. Personally, I am a member of Ramapo College's track and field team and specialize in the hammer throw. The purpose of competing in a throwing event is to throw the implement as far as possible. Currently, it is difficult to predict exactly where a person's best throw could be just by looking at them, but this lab poses the question: What can we use to predict a person's best throw, or PR, specifically focusing on a person's hammer throw PR. This lab will test whether or not three different predictors are significant in determining a person's hammer PR in meters. Those predictors being the amount of collegiate years they have spent throwing, their Discus PR (measured in meters), and their collegiate division (Division 1, 2, or 3).  
+
+```{r, echo=FALSE}
+Hammer <- Lab_5_Data_Sheet1$`Hammer PR`
+Years <- Lab_5_Data_Sheet1$`Collegiate Years`
+Discus <- Lab_5_Data_Sheet1$`Discus PR`
+
+Division <- c("D1", "D1", "D1", "D1", "D1", "D1", "D1", "D1", "D1", "D1", "D1", "D1", "D1", "D1", "D1", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "NOT", "D3", "D3", "D3", "D3", "D3", "D3", "D3", "D3", "D3", "D3", "D3", "D3", "D3", "D3", "D3")
+
+
+
+d1 <- ifelse(Division == 'D1', 1, 0)
+d2 <- ifelse(Division == 'NOT', 1, 0)
+
+example <- lm(Hammer ~ Years + Discus + d1 + d2)
+
+```
+
+### DATA COLLECTION
+
+|       In order to collect the data, the method used is known as stratified random sampling. Using an online database for track and field meet results known as TFRRS, I randomly chose 15 athletes from the top 500 ranking in each collegiate division (I, II, and III), and took note of their year (Freshman, Sophomore, Junior, or Senior, relating to 1 year - 4 years collegiate throwing experience) as well as their discus PR and their hammer PR, both being measured in meters. (Side note: The last athlete for Division III is actually me, and it happened by complete chance).
+
+## MODEL + MODEL ASSUMPTIONS
+
+|       Because division is technically a categorical predictor, we need to use dummy variables. Because there are three categories, Division 1, 2, and 3, we need to use two dummy variables. This analysis will use a linear regression model. The following is the mode of the relationship for the response variable, Hammer PR, and the three predictors. 
+
+$$Y = \beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3+\beta_4x_4 + \epsilon,\textrm{ }\epsilon\textrm{~}N(0, \sigma)$$
+
+Where the response variable and coefficients are defined as:
+
+|      $Y$ = Hammer PR
+|      $x_1$ = Collegiate Years Throwing
+|      $x_2$ = Discus PR
+|      $x_3$ = $\begin{cases} \textrm{1 if D1} \\ \textrm{0 Otherwise} \end{cases}$
+|      $x_4$ = $\begin{cases} \textrm{1 if D2} \\ \textrm{0 Otherwise} \end{cases}$
+
+$$\begin{cases}H_o:\beta_1=\beta_2=\dots = \beta_k=0 \\ H_a: \textrm{not all } \beta_i \textrm{ are } 0 \end{cases}$$
+
+|         In terms of model assumptions, it is important to check if the residuals have any form of normality, shown in the following Shapiro-Wilk normality test. The Shapiro-Wilk normality test is defined with the hypothesis:
+
+$$\begin{cases}H_o: \textrm{erors are normally distributed} \\ H_a: \textrm{errors are being drawn from a non-normal distribution } \end{cases}$$
+
+```{r, echo=FALSE}
+shapiro.test(example$residuals)
+
+```
+
+|       As we can see from the Shapiro-Wilk normality test, the p-value is 0.5233. And an an alpha level of 0.05, the p-value is much greater than the alpha level. Therefore, we can conclude that the residuals are indeed normally distributed. However, we must now check that the residuals have constant variance with the following residual plot:
+```{r, echo=FALSE}
+plot(example$residuals)
+```
+
+|       Since there seems to be no pattern to the residual plot, and the points are all relatively randomly dispersed, we can conclude that a linear regression model is indeed appropriate. 
+
+\newpage
+
+# MODEL PARAMETERS
+
+|       We can find and interpret the model parameters with the summary function of the linear regression model:
+
+```{r, echo=FALSE}
+summary(example)
+```
+
+|       As we can see, the coefficients for the model are given in the linear regression model in the "estimates" column. $\hat\beta_1 = 2.5867 \textrm{ (Collegiate Years Throwing)}$, $\hat\beta_2 = 0.4893 \textrm{ (Discus PR)}$, $\hat\beta_3 = 3.6576 \textrm{ (Divison 1)}$, and $\hat\beta_4 = -1.8934 \textrm{ (Division 2)}$.
+
+|       The beta coefficient is the degree of change in the response variable for every unit change of the predictors. It seems that Hammer PR tends to increase with more years throwing as well as with a higher discus PR. Although, from the model we can see that collegiate division is not significant in predicting hammer PR. However, from going to Division 3 to Division 2, Hammer PR tends to decrease by 1.8934 meters, and from D3 to D1, it tends to increase by 3.6576 meters. For collegiate years throwing, this model shows that for each year increase, the athlete's hammer PR increases on average by 2.5867 meters. Similarly, for every meter increase in discus PR, an athlete's hammer PR increases by 0.4893 meters on average. 
+
+|       Since the divisions do not seem to be significant predictors because of their relatively high p-value, we can iteratively remove the Division 2 predictor. This results in a decrease in the p-value of the Division 1 predictor, to the point where it is indeed significant. That means that an athlete being a member of a division 1 college rather than division 2 or 3 is a significant effect an athlete's on hammer PR. 
+
+# CONCLUSIONS
+
+|       Overall, this model was not very well fit. The r squared value is 0.4718, meaning 47.18% of the data is represented by the model of linear regression. While this model does account for some, 47.18% is not a good fit. In terms of predicting hammer PR, we can see that farther and better performances in the other events (specifically Discus) and more experience seems to indicate positive change in hammer PR, division does not play a large role from Division 3 to Division 2, but from those it differs largely into Division 1, which makes sense, because those programs have larger budgets, recruit much more and much stricter, overall just have better facilities and resources to train their athletes to perform better. 
